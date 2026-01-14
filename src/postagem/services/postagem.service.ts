@@ -11,13 +11,20 @@ export class PostagemService {
   ) {}
 
   async findAll(): Promise<Postagem[]> {
-    return await this.postagemRepository.find();
+    return await this.postagemRepository.find({
+      relations: {
+        tema: true,
+      },
+    });
   }
 
   async findById(id: number): Promise<Postagem> {
     const postagem = await this.postagemRepository.findOne({
       where: {
         id,
+      },
+      relations: {
+        tema: true,
       },
     });
 
@@ -27,10 +34,13 @@ export class PostagemService {
     return postagem;
   }
 
-  async findAllByTitle(titulo: string): Promise<Postagem[]> {
+  async findAllByTitulo(titulo: string): Promise<Postagem[]> {
     return await this.postagemRepository.find({
       where: {
         titulo: ILike(`%${titulo}%`),
+      },
+      relations: {
+        tema: true,
       },
     });
   }
@@ -40,19 +50,13 @@ export class PostagemService {
   }
 
   async update(postagem: Postagem): Promise<Postagem> {
-    const buscaPostagem = await this.findById(postagem.id);
-
-    if (!buscaPostagem || !postagem.id)
-      throw new HttpException('Postagem não encontrada!', HttpStatus.NOT_FOUND);
+    await this.findById(postagem.id);
 
     return await this.postagemRepository.save(postagem);
   }
 
   async delete(id: number): Promise<DeleteResult> {
-    const buscaPostagem = await this.findById(id);
-
-    if (!buscaPostagem)
-      throw new HttpException('Postagem não encontrada!', HttpStatus.NOT_FOUND);
+    await this.findById(id);
 
     return await this.postagemRepository.delete(id);
   }
